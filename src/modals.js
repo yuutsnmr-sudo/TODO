@@ -8,6 +8,8 @@ import { updateAllCounts } from "./tasks.js";
 
 export function initModalSystem() {
   document.querySelectorAll(".modal").forEach((modal) => {
+    if (modal.id === "authModal") return;
+
     modal.addEventListener("click", (e) => {
       if (e.target === modal) modal.classList.remove("active");
     });
