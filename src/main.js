@@ -1,4 +1,5 @@
-console.log("AUTH MAIN LOADED ✅");
+const debug = (...args) => console.log("[APP]", ...args);
+debug("Main script loaded");
 // ============================
 // Firebase (no bundler, CDN ESM)
 // ============================
@@ -66,15 +67,57 @@ function setAuthError(message) {
 }
 
 function showAuthGate() {
-  $("authGate") && ($("authGate").style.display = "flex");
-  $("appRoot") && ($("appRoot").style.display = "none");
-  $("logoutBtn") && ($("logoutBtn").style.display = "none");
+  const modal = $("authModal");
+  if (modal) {
+    modal.classList.add("active");
+    modal.style.display = "flex";
+    debug("Showing auth modal");
+  }
+
+  const appRoot = $("appRoot");
+  if (appRoot) {
+    appRoot.style.display = "none";
+    debug("Hiding app root while unauthenticated");
+  }
+
+  const logoutBtn = $("logoutBtn");
+  if (logoutBtn) logoutBtn.style.display = "none";
 }
 
 function showApp() {
-  $("authGate") && ($("authGate").style.display = "none");
-  $("appRoot") && ($("appRoot").style.display = "flex");
-  $("logoutBtn") && ($("logoutBtn").style.display = "inline-flex");
+  const modal = $("authModal");
+  if (modal) {
+    modal.classList.remove("active");
+    modal.style.display = "none";
+    debug("Hiding auth modal after login");
+  }
+
+  const appRoot = $("appRoot");
+  if (appRoot) {
+    appRoot.style.display = "grid";
+    debug("Showing app root for authenticated user");
+  }
+
+  const logoutBtn = $("logoutBtn");
+  if (logoutBtn) logoutBtn.style.display = "inline-flex";
+
+  $("authForm")?.reset();
+  authMode = "signin";
+  updateAuthModeUI();
+  setAuthError("");
+}
+
+let authMode = "signin";
+
+function updateAuthModeUI() {
+  const isSignup = authMode === "signup";
+  const authTitle = $("authTitle");
+  const submitBtn = $("authSubmitBtn");
+  const toggleBtn = $("authToggleModeBtn");
+
+  if (authTitle) authTitle.textContent = isSignup ? "Create account" : "Sign in";
+  if (submitBtn) submitBtn.textContent = isSignup ? "Create account" : "Sign in";
+  if (toggleBtn) toggleBtn.textContent = isSignup ? "Back to sign in" : "Create account";
 }
 
 // ============================
@@ -85,6 +128,7 @@ let appInitialized = false;
 function initAppOnce() {
   if (appInitialized) return;
   appInitialized = true;
+  debug("Initializing app (first time)");
 
   // Data init
   loadFromLocalStorage();
@@ -123,12 +167,19 @@ function initAppOnce() {
 // Wire auth events
 // ============================
 function initAuthEvents() {
-  $("authCloseBtn")?.addEventListener("click", () => {
-    // Si tu veux empêcher de fermer sans login : commente la ligne suivante
-    showAuthGate();
+  updateAuthModeUI();
+  debug("Auth events initialized");
+
+  $("authToggleModeBtn")?.addEventListener("click", () => {
+    authMode = authMode === "signin" ? "signup" : "signin";
+    updateAuthModeUI();
+    setAuthError("");
+    debug("Toggled auth mode", authMode);
   });
 
-  $("authLoginBtn")?.addEventListener("click", async () => {
+  $("authForm")?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
     setAuthError("");
     const email = ($("authEmail")?.value || "").trim();
     const password = $("authPassword")?.value || "";
@@ -138,34 +189,24 @@ function initAuthEvents() {
       return;
     }
 
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (e) {
-      setAuthError(e?.message || "Login failed.");
-    }
-  });
-
-  $("authSignupBtn")?.addEventListener("click", async () => {
-    setAuthError("");
-    const email = ($("authEmail")?.value || "").trim();
-    const password = $("authPassword")?.value || "";
-
-    if (!email || !password) {
-      setAuthError("Please enter email + password.");
-      return;
-    }
-
-    // (optionnel) minimum password
-    if (password.length < 6) {
+    if (authMode === "signup" && password.length < 6) {
       setAuthError("Password must be at least 6 characters.");
       return;
     }
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      showToast("Account created", "success");
+      if (authMode === "signin") {
+        debug("Attempting sign in", email);
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        debug("Attempting sign up", email);
+        await createUserWithEmailAndPassword(auth, email, password);
+        showToast("Account created", "success");
+      }
     } catch (e) {
-      setAuthError(e?.message || "Signup failed.");
+      setAuthError(
+        e?.message || (authMode === "signin" ? "Login failed." : "Signup failed.")
+      );
     }
   });
 
@@ -178,10 +219,10 @@ function initAuthEvents() {
     }
   });
 
-  // Close auth modal when clicking outside card
-  $("authGate")?.addEventListener("click", (e) => {
-    if (e.target?.id === "authGate") {
-      // on ne ferme pas vraiment, on laisse visible
+  // Keep auth modal open on backdrop clicks
+  $("authModal")?.addEventListener("click", (e) => {
+    if (e.target?.id === "authModal") {
+      setAuthError("");
       showAuthGate();
     }
   });
@@ -192,8 +233,10 @@ function initAuthEvents() {
 // ============================
 document.addEventListener("DOMContentLoaded", () => {
   initAuthEvents();
+  debug("DOM ready, waiting for auth state");
 
   onAuthStateChanged(auth, (user) => {
+    debug("Auth state changed", user ? "authenticated" : "unauthenticated");
     if (!user) {
       showAuthGate();
       return;
