@@ -1,0 +1,214 @@
+/* Tasks list container */
+.tasks-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-lg) var(--spacing-xl);
+    background: var(--bg);
+  }
+  
+  /* Task row */
+  .task-card {
+    display: grid;
+    grid-template-columns: 22px 1fr auto;
+    gap: 12px;
+  
+    padding: 12px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    margin-bottom: 10px;
+  
+    transition: var(--transition);
+  }
+  
+  .task-card:hover {
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .task-card.completed {
+    opacity: 0.55;
+  }
+  
+  .task-checkbox {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    cursor: pointer;
+    accent-color: var(--accent);
+  }
+  
+  .task-card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+  
+  .task-card-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.1px;
+  
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .task-card.completed .task-card-title {
+    text-decoration: line-through;
+    color: var(--text-muted);
+  }
+  
+  .task-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+  
+  .task-card-due {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  
+  .task-card.overdue .task-card-due {
+    color: var(--danger);
+    font-weight: 600;
+  }
+  
+  /* Right-side actions (show on hover) */
+  .task-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    transition: var(--transition);
+  }
+  
+  .task-card:hover .task-card-actions {
+    opacity: 1;
+  }
+  
+  /* Badge base */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0;
+  }
+  
+  .badge-tag {
+    border-style: dashed;
+  }
+  
+  /* Priority badge only (no liseré on card) */
+  .badge.priority {
+    font-weight: 500;
+  }
+  
+  .badge.priority-Highest {
+    color: var(--p-highest);
+    border-color: rgba(217, 45, 32, 0.35);
+    background: rgba(217, 45, 32, 0.06);
+  }
+  
+  .badge.priority-High {
+    color: var(--p-high);
+    border-color: rgba(247, 144, 9, 0.35);
+    background: rgba(247, 144, 9, 0.06);
+  }
+  
+  .badge.priority-Medium {
+    color: var(--p-medium);
+    border-color: rgba(10, 31, 68, 0.35);
+    background: rgba(10, 31, 68, 0.06);
+  }
+  
+  .badge.priority-Low {
+    color: var(--p-low);
+    border-color: rgba(18, 183, 106, 0.35);
+    background: rgba(18, 183, 106, 0.06);
+  }
+  
+  .badge.priority-Lowest {
+    color: var(--p-lowest);
+    border-color: rgba(152, 162, 179, 0.35);
+    background: rgba(152, 162, 179, 0.06);
+  }
+  
+  /* Empty state */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px;
+    text-align: center;
+    color: var(--text-muted);
+  }
+  
+  .empty-state h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  
+  .empty-subtitle {
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+
+/* =========================
+   STATUS BADGES (JIRA-like)
+   ========================= */
+
+   .badge-status {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+  
+    padding: 0 8px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  
+    border-radius: 4px; /* ← plus rectangulaire */
+    border: 1px solid transparent;
+  
+    background: #f2f4f7;
+    color: #344054;
+  }
+  
+  /* IN PROGRESS */
+  .badge-status.in-progress {
+    background: #e0ecff;
+    border-color: #b2ccff;
+    color: #175cd3;
+  }
+  
+  /* WAITING */
+  .badge-status.waiting {
+    background: #fff3e0;
+    border-color: #fed7aa;
+    color: #b54708;
+  }
+  
+  /* TODO (optionnel si jamais tu l’affiches un jour) */
+  .badge-status.todo {
+    background: #f2f4f7;
+    border-color: #d0d5dd;
+    color: #475467;
+  }
+  
+  
