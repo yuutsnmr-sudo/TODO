@@ -136,7 +136,10 @@ function updateAuthModeUI() {
 let appInitialized = false;
 
 function initAppOnce() {
-  if (appInitialized) return;
+  if (appInitialized) {
+    debug("App already initialized, skipping");
+    return;
+  }
   appInitialized = true;
   debug("Initializing app (first time)");
 
