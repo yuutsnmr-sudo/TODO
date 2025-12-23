@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tasks</title>
+
+  <!-- Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+  <div class="app-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <!-- On garde H1 + on ajoute un header-row flex (inline) pour ne pas dépendre du CSS -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <h1 style="margin:0;">Tasks</h1>
+          <button class="btn btn-secondary btn-sm" id="logoutBtn" type="button" style="display:none;">
+            Log out
+          </button>
+        </div>
+      </div>
+
+      <nav class="views-nav">
+        <h3>Views</h3>
+
+        <button class="view-btn active" type="button" data-view="all">
+          <span>All</span>
+          <span class="count" id="countAll">0</span>
+        </button>
+
+        <button class="view-btn" type="button" data-view="today">
+          <span>Today</span>
+          <span class="count" id="countToday">0</span>
+        </button>
+
+        <button class="view-btn" type="button" data-view="week">
+          <span>This week</span>
+          <span class="count" id="countWeek">0</span>
+        </button>
+
+        <button class="view-btn" type="button" data-view="overdue">
+          <span>Overdue</span>
+          <span class="count" id="countOverdue">0</span>
+        </button>
+
+        <button class="view-btn" type="button" data-view="nodate">
+          <span>No date</span>
+          <span class="count" id="countNodate">0</span>
+        </button>
+
+        <button class="view-btn" type="button" data-view="completed">
+          <span>Completed</span>
+          <span class="count" id="countCompleted">0</span>
+        </button>
+      </nav>
+
+      <nav class="categories-nav">
+        <div class="categories-header" id="toggleCategories">
+          <h3>Categories</h3>
+          <button class="btn-icon-sm" id="addCategoryBtn" type="button" title="New category">+</button>
+        </div>
+
+        <div id="categoriesWrapper">
+          <div id="categoriesList"></div>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="btn btn-primary btn-block" id="newTaskBtn" type="button">New task</button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <header class="content-header">
+        <div class="header-top">
+          <h2 id="viewTitle">All tasks</h2>
+
+          <div class="header-actions">
+            <input
+              id="searchInput"
+              class="search-input"
+              type="text"
+              placeholder="Search tasks…"
+              autocomplete="off"
+            />
+
+            <select id="sortSelect" class="sort-select">
+              <option value="default">Sort: Default</option>
+              <option value="dueDate">Sort: Due date</option>
+              <option value="priority">Sort: Priority</option>
+              <option value="created">Sort: Created</option>
+              <option value="category">Sort: Category</option>
+            </select>
+          </div>
+        </div>
+      </header>
+
+      <section class="tasks-list" id="tasksList"></section>
+
+      <section class="empty-state" id="emptyState" style="display:none;">
+        <h3>No tasks found</h3>
+        <p class="empty-subtitle">Create your first task to get started.</p>
+        <button class="btn btn-primary" id="emptyCreateBtn" type="button">Create task</button>
+      </section>
+    </main>
+
+    <!-- DETAIL PANEL -->
+    <aside class="detail-panel" id="detailPanel" style="display:none;">
+      <div class="detail-header">
+        <h3>Task</h3>
+        <button class="btn-close" id="closeDetailBtn" type="button">✕</button>
+      </div>
+      <div class="detail-content" id="detailContent"></div>
+    </aside>
+  </div>
+
+  <!-- AUTH MODAL (hors layout => n'impacte pas la mise en page) -->
+  <div class="modal" id="authModal" style="display:none;">
+    <div class="modal-content modal-small">
+      <div class="modal-header">
+        <h3 id="authTitle">Sign in</h3>
+        <!-- pas de close: on force l'auth si nécessaire -->
+        <span></span>
+      </div>
+
+      <form id="authForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="authEmail">Email</label>
+            <input id="authEmail" type="email" autocomplete="username" required />
+          </div>
+
+          <div class="form-group">
+            <label for="authPassword">Password</label>
+            <input id="authPassword" type="password" autocomplete="current-password" required />
+          </div>
+
+          <div id="authError" style="display:none;font-size:13px;color:#b42318;margin-top:8px;"></div>
+        </div>
+
+        <div class="modal-actions" style="display:flex;gap:10px;justify-content:space-between;">
+          <button class="btn btn-secondary" id="authToggleModeBtn" type="button">Create account</button>
+          <button class="btn btn-primary" id="authSubmitBtn" type="submit">Sign in</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TASK MODAL -->
+  <div class="modal" id="taskModal">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h3 id="modalTitle">New task</h3>
+        <button class="btn-close" id="closeModalBtn" type="button">✕</button>
+      </div>
+
+      <form id="taskForm" class="task-form-modal">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="taskTitle">Title *</label>
+            <input id="taskTitle" type="text" required />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="taskPriority">Priority *</label>
+              <select id="taskPriority" required>
+                <option value="Lowest">Lowest</option>
+                <option value="Low">Low</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+                <option value="Highest">Highest</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="taskCategory">Category *</label>
+              <select id="taskCategory" required>
+                <option value="">Select…</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="taskDueDate">Due date</label>
+              <input id="taskDueDate" type="date" />
+            </div>
+
+            <div class="form-group">
+              <label for="taskRecurrence">Recurrence</label>
+              <select id="taskRecurrence">
+                <option value="" selected>None</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- STATUS -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="taskStatus">Status</label>
+              <select id="taskStatus">
+                <option value="todo" selected>To do</option>
+                <option value="in_progress">In progress</option>
+                <option value="waiting">Waiting</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="taskWaitingWrap" style="display:none;">
+              <label for="taskWaitingFor">Waiting for</label>
+              <input
+                id="taskWaitingFor"
+                type="text"
+                placeholder="e.g. MOA feedback, supplier reply"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="taskTags">Tags (comma-separated)</label>
+            <input id="taskTags" type="text" />
+          </div>
+
+          <div class="form-group">
+            <label for="taskNotes">Notes</label>
+            <textarea id="taskNotes" rows="3"></textarea>
+          </div>
+
+          <!-- LINKS (with preview) -->
+          <div class="form-group">
+            <label for="taskLinks">Links (one per line)</label>
+            <textarea id="taskLinks" rows="2" placeholder="https://..."></textarea>
+            <div class="links-preview" id="taskLinksPreview"></div>
+          </div>
+
+          <div class="form-group">
+            <label>Subtasks</label>
+            <div class="subtasks-list" id="subtasksList"></div>
+            <button class="btn btn-secondary btn-sm" id="addSubtaskBtn" type="button">Add subtask</button>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" id="cancelModalBtn" type="button">Cancel</button>
+          <button class="btn btn-primary" type="submit">
+            <span id="submitBtnText">Create</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CATEGORY MODAL -->
+  <div class="modal" id="categoryModal">
+    <div class="modal-content modal-small">
+      <div class="modal-header">
+        <h3>New category</h3>
+        <button class="btn-close" id="closeCategoryModalBtn" type="button">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="newCategoryInput">Name</label>
+          <input id="newCategoryInput" type="text" />
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelCategoryBtn" type="button">Cancel</button>
+        <button class="btn btn-primary" id="saveCategoryBtn" type="button">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DELETE MODAL -->
+  <div class="modal" id="deleteModal">
+    <div class="modal-content modal-small">
+      <div class="modal-header">
+        <h3>Delete task</h3>
+        <button class="btn-close" id="closeDeleteModalBtn" type="button">✕</button>
+      </div>
+
+      <div class="delete-message">
+        Are you sure you want to delete this task? This action cannot be undone.
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancelDeleteBtn" type="button">Cancel</button>
+        <button class="btn btn-danger" id="confirmDeleteBtn" type="button">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOASTS -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
