@@ -1,5 +1,15 @@
 const debug = (...args) => console.log("[APP]", ...args);
+const logError = (...args) => console.error("[APP][error]", ...args);
+
 debug("Main script loaded");
+window.addEventListener("error", (event) => {
+  logError("Uncaught error", event?.error || event?.message || event);
+});
+
+window.addEventListener("unhandledrejection", (event) => {
+  logError("Unhandled promise rejection", event?.reason || event);
+});
+
 // ============================
 // Firebase (no bundler, CDN ESM)
 // ============================
